@@ -1,22 +1,11 @@
 ---
+import { getCollection, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-const posts = [
-  {
-    slug: 'why-i-love-cpp',
-    title: 'Why I Keep Coming Back to C++',
-    description: 'Despite its notorious reputation, C++ continues to be the language I reach for when things need to be fast and correct.',
-    date: new Date('2025-03-12'),
-    tags: ['Opinion', 'C++'],
-  },
-  {
-    slug: 'data-oriented-design',
-    title: 'Data-Oriented Design: A Practical Primer',
-    description: 'What it means to think in data rather than objects, and why your CPU will thank you for it.',
-    date: new Date('2025-02-28'),
-    tags: ['Design', 'C++', 'Performance'],
-  },
-];
+const allPosts = await getCollection('blog', ({ data }: CollectionEntry<'blog'>) => !data.draft);
+const posts = allPosts.sort((a: CollectionEntry<'blog'>, b: CollectionEntry<'blog'>) =>
+  b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
 
 function formatDate(d: Date) {
   return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -35,14 +24,14 @@ function formatDate(d: Date) {
       </header>
 
       <div class="post-list">
-        {posts.map(post => (
-          <a href={`/blog/${post.slug}`} class="post-item">
+        {posts.map((post: CollectionEntry<'blog'>) => (
+          <a href={`/blog/${post.id}`} class="post-item">
             <div class="post-left">
-              <time class="post-date">{formatDate(post.date)}</time>
-              <h2 class="post-title">{post.title}</h2>
-              <p class="post-desc">{post.description}</p>
+              <time class="post-date">{formatDate(post.data.pubDate)}</time>
+              <h2 class="post-title">{post.data.title}</h2>
+              <p class="post-desc">{post.data.description}</p>
               <div class="post-tags">
-                {post.tags.map(tag => <span class="tag">{tag}</span>)}
+                {post.data.tags.map((tag: string) => <span class="tag">{tag}</span>)}
               </div>
             </div>
             <span class="post-arrow" aria-hidden="true">&rarr;</span>

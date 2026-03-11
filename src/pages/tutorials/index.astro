@@ -1,30 +1,23 @@
 ---
+import { getCollection, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-const tutorials = [
+const published = await getCollection('tutorials', ({ data }: CollectionEntry<'tutorials'>) => !data.draft);
+published.sort((a: CollectionEntry<'tutorials'>, b: CollectionEntry<'tutorials'>) =>
+  b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+// Upcoming tutorials not yet written — add new entries here as placeholders
+const upcoming: { title: string; description: string; tags: string[] }[] = [
   {
-    slug: 'cpp-particle-systems',
-    title: 'Particle Systems in C++',
-    description: 'Build a data-oriented, cache-friendly particle system from scratch using modern C++ techniques. Covers SOA layout, emitters, update loops, and simple rendering.',
-    tags: ['C++', 'Graphics', 'Systems'],
-    date: '2025-03-10',
-    available: true,
-  },
-  {
-    slug: 'opengl-first-triangle',
     title: 'OpenGL Basics: Your First Triangle',
     description: 'Getting started with OpenGL — setting up a context with GLFW, writing your first vertex and fragment shaders, and drawing geometry to the screen.',
     tags: ['C++', 'OpenGL', 'Rendering'],
-    date: null,
-    available: false,
   },
   {
-    slug: 'lock-free-queue',
     title: 'Writing a Lock-Free Queue in C++',
     description: 'Explore atomic operations and memory ordering to build a thread-safe, lock-free MPSC queue using std::atomic and careful reasoning about happens-before.',
     tags: ['C++', 'Concurrency', 'Data Structures'],
-    date: null,
-    available: false,
   },
 ];
 ---
@@ -41,25 +34,33 @@ const tutorials = [
       </header>
 
       <div class="tutorial-list">
-        {tutorials.map(t => (
-          <div class={`tutorial-item${t.available ? '' : ' tutorial-item--upcoming'}`}>
+        {published.map((t: CollectionEntry<'tutorials'>) => (
+          <div class="tutorial-item">
             <div class="tutorial-content">
               <div class="tutorial-tags">
-                {t.tags.map(tag => <span class="tag">{tag}</span>)}
+                {t.data.tags.map((tag: string) => <span class="tag">{tag}</span>)}
               </div>
               <h2 class="tutorial-title">
-                {t.available
-                  ? <a href={`/tutorials/${t.slug}`}>{t.title}</a>
-                  : t.title
-                }
+                <a href={`/tutorials/${t.id}`}>{t.data.title}</a>
               </h2>
+              <p class="tutorial-desc">{t.data.description}</p>
+            </div>
+            <div class="tutorial-meta">
+              <a href={`/tutorials/${t.id}`} class="btn">Read tutorial &rarr;</a>
+            </div>
+          </div>
+        ))}
+        {upcoming.map((t: { title: string; description: string; tags: string[] }) => (
+          <div class="tutorial-item tutorial-item--upcoming">
+            <div class="tutorial-content">
+              <div class="tutorial-tags">
+                {t.tags.map((tag: string) => <span class="tag">{tag}</span>)}
+              </div>
+              <h2 class="tutorial-title">{t.title}</h2>
               <p class="tutorial-desc">{t.description}</p>
             </div>
             <div class="tutorial-meta">
-              {t.available && t.date
-                ? <a href={`/tutorials/${t.slug}`} class="btn">Read tutorial &rarr;</a>
-                : <span class="upcoming-label">Coming soon</span>
-              }
+              <span class="upcoming-label">Coming soon</span>
             </div>
           </div>
         ))}
