@@ -1,0 +1,138 @@
+---
+import ProseLayout from '../../layouts/ProseLayout.astro';
+---
+
+<ProseLayout
+  title="Data-Oriented Design: A Practical Primer"
+  description="What it means to think in data rather than objects, and why your CPU will thank you for it."
+  pubDate={new Date('2025-02-28')}
+  tags={['Design', 'C++', 'Performance']}
+  section="Blog"
+  sectionHref="/blog"
+>
+
+<p>
+  Data-oriented design (DOD) gets talked about a lot in game development circles, and
+  occasionally makes it into mainstream programming discourse — usually in the form of
+  "structure of arrays vs array of structures." But I think the framing often undersells
+  what DOD actually is, because it's not really about arrays.
+</p>
+
+<p>
+  It's about thinking from the perspective of the CPU rather than the programmer.
+</p>
+
+<h2>The Problem with Objects</h2>
+
+<p>
+  Object-oriented programming is great at organising code. Classes give you a natural way
+  to group related behaviour, encapsulate state, and reason about a system in terms of
+  its actors. The mental model maps well to how humans think about problems.
+</p>
+
+<p>
+  The mental model maps badly to how CPUs process data.
+</p>
+
+<p>
+  Consider a typical game object:
+</p>
+
+<pre><code>struct Entity &#123;
+    glm::vec3   position;
+    glm::quat   rotation;
+    glm::vec3   scale;
+    std::string name;
+    uint32_t    flags;
+    Health      health;
+    AI*         aiComponent;
+    Renderer*   renderComponent;
+    // ... etc
+&#125;;
+
+std::vector&lt;Entity&gt; entities;</code></pre>
+
+<p>
+  When you run your physics update and iterate over all entities to integrate their
+  positions, the CPU has to load the entire <code>Entity</code> structure into cache
+  even though it only needs <code>position</code> and maybe <code>velocity</code>.
+  Every other field is dead weight — bandwidth wasted, cache lines polluted.
+</p>
+
+<h2>Thinking in Data Transformations</h2>
+
+<p>
+  DOD asks a different question. Instead of "what objects do I have?" it asks:
+  "what data transformations does my program perform?"
+</p>
+
+<p>
+  Take a physics update. The inputs are positions and velocities. The output is updated
+  positions. That's it. Design your data layout around that transformation:
+</p>
+
+<pre><code>struct PhysicsState &#123;
+    std::vector&lt;glm::vec3&gt; positions;
+    std::vector&lt;glm::vec3&gt; velocities;
+    // Only what physics needs lives here
+&#125;;
+
+void UpdatePhysics(PhysicsState&amp; state, float dt) &#123;
+    for (size_t i = 0; i &lt; state.positions.size(); ++i) &#123;
+        state.positions[i] += state.velocities[i] * dt;
+    &#125;
+&#125;</code></pre>
+
+<p>
+  Now the loop touches exactly the data it needs, in sequential memory order.
+  The CPU's prefetcher can do its job. SIMD auto-vectorization becomes trivial.
+  This loop will run significantly faster than its OOP equivalent — often 4-10x
+  on modern hardware, depending on the original layout.
+</p>
+
+<h2>It's Not All or Nothing</h2>
+
+<p>
+  One misconception I often see is that DOD means abandoning all abstraction. It doesn't.
+  You can still have a high-level <code>EntityManager</code> that presents a
+  friendly interface while keeping the underlying storage cache-friendly. The trick is to
+  put the performance-sensitive layout decisions at the right layer.
+</p>
+
+<p>
+  Think of it as a two-level design: a high-level API that's ergonomic to use, sitting
+  on top of a low-level data layout that's efficient to execute. The ECS (Entity Component
+  System) architecture popular in games does exactly this.
+</p>
+
+<h2>When Does It Matter?</h2>
+
+<p>
+  Not everywhere. If you're processing a thousand items once per frame, the cache
+  behaviour doesn't matter — it's not your bottleneck. DOD pays off when you have:
+</p>
+
+<ul>
+  <li>Large numbers of homogeneous items being processed every frame</li>
+  <li>Tight performance requirements (games, simulations, real-time systems)</li>
+  <li>Operations that touch a subset of an object's total data</li>
+</ul>
+
+<p>
+  For a web backend handling requests? Probably not worth the added complexity. For a
+  particle system, physics simulation, or rendering pipeline? Absolutely worth thinking about.
+</p>
+
+<blockquote>
+  "Design for the hardware, not for the programmer's mental model. The programmer's mental
+  model is there to help you write the code; the hardware's constraints determine how
+  fast it runs."
+</blockquote>
+
+<p>
+  If you want to explore this further, Mike Acton's CppCon 2014 talk "Data-Oriented Design
+  and C++" is the canonical starting point. It's blunt, occasionally confrontational, and
+  entirely correct.
+</p>
+
+</ProseLayout>

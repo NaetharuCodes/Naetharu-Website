@@ -1,0 +1,97 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  pubDate?: Date;
+  tags?: string[];
+  section?: string;
+  sectionHref?: string;
+}
+
+const { title, description, pubDate, tags = [], section, sectionHref } = Astro.props;
+
+const formattedDate = pubDate
+  ? pubDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
+  : null;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="prose-page">
+    <div class="container">
+      <header class="post-header">
+        {section && (
+          <a href={sectionHref ?? '#'} class="back-link">
+            &larr; {section}
+          </a>
+        )}
+        <h1>{title}</h1>
+        <div class="post-meta">
+          {formattedDate && <time>{formattedDate}</time>}
+          {tags.length > 0 && (
+            <div class="tag-list">
+              {tags.map(tag => <span class="tag">{tag}</span>)}
+            </div>
+          )}
+        </div>
+        {description && <p class="post-description">{description}</p>}
+      </header>
+      <article class="prose">
+        <slot />
+      </article>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .prose-page {
+    padding: 3rem 0 5rem;
+  }
+
+  .back-link {
+    display: inline-block;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover { color: var(--color-accent); }
+
+  .post-header {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .post-header h1 {
+    margin-bottom: 1rem;
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .post-meta time {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .post-description {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    margin-top: 1rem;
+  }
+</style>

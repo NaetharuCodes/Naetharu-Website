@@ -1,0 +1,276 @@
+---
+import ProseLayout from '../../layouts/ProseLayout.astro';
+---
+
+<ProseLayout
+  title="Particle Systems in C++"
+  description="Build a data-oriented, cache-friendly particle system from scratch using modern C++ techniques."
+  pubDate={new Date('2025-03-10')}
+  tags={['C++', 'Graphics', 'Systems']}
+  section="Tutorials"
+  sectionHref="/tutorials"
+>
+
+<p>
+  Particle systems are one of those topics that look deceptively simple from the outside —
+  spawn some points, move them, draw them — but hide a surprising amount of interesting
+  design decisions once you start digging in. In this tutorial we'll build one from scratch
+  in C++, with a deliberate focus on keeping the data layout cache-friendly and the update
+  loop tight.
+</p>
+
+<h2>What We're Building</h2>
+
+<p>
+  By the end of this tutorial you'll have a self-contained particle system that can:
+</p>
+
+<ul>
+  <li>Spawn particles from configurable emitter shapes (point, sphere, cone)</li>
+  <li>Simulate position, velocity, lifetime, and colour over time</li>
+  <li>Handle particle death and reuse without allocating on the hot path</li>
+  <li>Integrate into a simple render loop (pseudo-code, renderer-agnostic)</li>
+</ul>
+
+<p>
+  We won't be writing a full renderer here — the focus is on the simulation side. You'll
+  be able to drop this into whatever graphics API you prefer.
+</p>
+
+<h2>Why Data-Oriented Design?</h2>
+
+<p>
+  The classic object-oriented approach to a particle system creates a <code>Particle</code> class
+  with all its fields bundled together, then stores a <code>std::vector&lt;Particle&gt;</code>:
+</p>
+
+<pre><code>// Array of Structures (AoS) — classic OOP approach
+struct Particle &#123;
+    glm::vec3 position;
+    glm::vec3 velocity;
+    glm::vec4 colour;
+    float     lifetime;
+    float     maxLifetime;
+    bool      alive;
+&#125;;
+
+std::vector&lt;Particle&gt; particles;</code></pre>
+
+<p>
+  This works fine at small scales, but consider what happens when you update 100,000
+  particles and only need their positions and velocities. For each particle, your CPU fetches
+  a full cache line — which includes <code>colour</code>, <code>lifetime</code>, and all the
+  other fields you're not touching yet. Most of that cache line is wasted bandwidth.
+</p>
+
+<p>
+  The fix is to flip the layout: instead of an array of structures, use a structure of arrays (SoA):
+</p>
+
+<pre><code>// Structure of Arrays (SoA) — data-oriented layout
+struct ParticlePool &#123;
+    std::vector&lt;glm::vec3&gt; positions;
+    std::vector&lt;glm::vec3&gt; velocities;
+    std::vector&lt;glm::vec4&gt; colours;
+    std::vector&lt;float&gt;     lifetimes;
+    std::vector&lt;float&gt;     maxLifetimes;
+    std::vector&lt;bool&gt;      alive;
+
+    size_t capacity;
+&#125;;</code></pre>
+
+<p>
+  Now when you iterate through positions and velocities in the physics step, you're reading
+  from two dense, contiguous arrays. Cache lines are fully utilised, and the SIMD auto-vectorizer
+  in your compiler has a much easier job.
+</p>
+
+<h2>The Particle Pool</h2>
+
+<p>
+  We pre-allocate all particle storage upfront to avoid heap allocations on the hot path.
+  Dead particles are tracked with a free list:
+</p>
+
+<pre><code>#include &lt;vector&gt;
+#include &lt;stack&gt;
+#include &lt;glm/glm.hpp&gt;
+
+class ParticlePool &#123;
+public:
+    explicit ParticlePool(size_t capacity) : m_capacity(capacity) &#123;
+        m_positions.resize(capacity);
+        m_velocities.resize(capacity);
+        m_colours.resize(capacity);
+        m_lifetimes.resize(capacity, 0.0f);
+        m_maxLifetimes.resize(capacity, 1.0f);
+        m_alive.resize(capacity, false);
+
+        // All slots start on the free list
+        for (size_t i = capacity; i-- > 0;)
+            m_freeList.push(i);
+    &#125;
+
+    // Returns index of spawned particle, or -1 if pool is full
+    int Spawn(glm::vec3 pos, glm::vec3 vel, glm::vec4 col, float lifetime) &#123;
+        if (m_freeList.empty()) return -1;
+
+        size_t idx = m_freeList.top();
+        m_freeList.pop();
+
+        m_positions[idx]    = pos;
+        m_velocities[idx]   = vel;
+        m_colours[idx]      = col;
+        m_lifetimes[idx]    = lifetime;
+        m_maxLifetimes[idx] = lifetime;
+        m_alive[idx]        = true;
+
+        return static_cast&lt;int&gt;(idx);
+    &#125;
+
+    void Update(float dt) &#123;
+        for (size_t i = 0; i &lt; m_capacity; ++i) &#123;
+            if (!m_alive[i]) continue;
+
+            m_lifetimes[i] -= dt;
+            if (m_lifetimes[i] &lt;= 0.0f) &#123;
+                m_alive[i] = false;
+                m_freeList.push(i);
+                continue;
+            &#125;
+
+            // Integrate velocity
+            m_positions[i] += m_velocities[i] * dt;
+
+            // Fade alpha over lifetime
+            float t = m_lifetimes[i] / m_maxLifetimes[i];
+            m_colours[i].a = t;
+        &#125;
+    &#125;
+
+    // Accessors for the renderer
+    const std::vector&lt;glm::vec3&gt;&amp; Positions()  const &#123; return m_positions; &#125;
+    const std::vector&lt;glm::vec4&gt;&amp; Colours()    const &#123; return m_colours;   &#125;
+    const std::vector&lt;bool&gt;&amp;      Alive()       const &#123; return m_alive;     &#125;
+    size_t                         Capacity()    const &#123; return m_capacity;  &#125;
+
+private:
+    size_t                   m_capacity;
+    std::vector&lt;glm::vec3&gt;  m_positions;
+    std::vector&lt;glm::vec3&gt;  m_velocities;
+    std::vector&lt;glm::vec4&gt;  m_colours;
+    std::vector&lt;float&gt;       m_lifetimes;
+    std::vector&lt;float&gt;       m_maxLifetimes;
+    std::vector&lt;bool&gt;        m_alive;
+    std::stack&lt;size_t&gt;       m_freeList;
+&#125;;</code></pre>
+
+<h2>The Emitter</h2>
+
+<p>
+  The emitter decides <em>where</em> and <em>how</em> particles are spawned. Let's build a
+  simple point emitter that fires particles in a cone:
+</p>
+
+<pre><code>#include &lt;random&gt;
+#include &lt;cmath&gt;
+
+class ConeEmitter &#123;
+public:
+    ConeEmitter(glm::vec3 origin, glm::vec3 direction, float halfAngle,
+                float speed, float lifetime, glm::vec4 colour)
+        : m_origin(origin), m_dir(glm::normalize(direction))
+        , m_halfAngle(halfAngle), m_speed(speed)
+        , m_lifetime(lifetime), m_colour(colour)
+        , m_rng(std::random_device&#123;&#125;())
+    &#123;&#125;
+
+    void Emit(ParticlePool&amp; pool, int count) &#123;
+        std::uniform_real_distribution&lt;float&gt; angleDist(0.0f, 2.0f * 3.14159f);
+        std::uniform_real_distribution&lt;float&gt; tiltDist(0.0f, m_halfAngle);
+
+        for (int i = 0; i &lt; count; ++i) &#123;
+            float tilt  = tiltDist(m_rng);
+            float spin  = angleDist(m_rng);
+
+            // Build a direction within the cone
+            glm::vec3 perp = glm::abs(m_dir.x) &lt; 0.9f
+                ? glm::vec3(1, 0, 0) : glm::vec3(0, 1, 0);
+            glm::vec3 u = glm::normalize(glm::cross(m_dir, perp));
+            glm::vec3 v = glm::cross(m_dir, u);
+
+            glm::vec3 dir = m_dir * std::cos(tilt)
+                          + (u * std::cos(spin) + v * std::sin(spin)) * std::sin(tilt);
+
+            pool.Spawn(m_origin, dir * m_speed, m_colour, m_lifetime);
+        &#125;
+    &#125;
+
+private:
+    glm::vec3               m_origin, m_dir;
+    float                   m_halfAngle, m_speed, m_lifetime;
+    glm::vec4               m_colour;
+    std::mt19937            m_rng;
+&#125;;</code></pre>
+
+<h2>Putting It Together</h2>
+
+<p>
+  With pool and emitter in hand, your main loop looks something like this:
+</p>
+
+<pre><code>ParticlePool pool(50'000);
+ConeEmitter  emitter(
+    glm::vec3(0, 0, 0),          // origin
+    glm::vec3(0, 1, 0),          // direction (up)
+    glm::radians(25.0f),         // half-angle
+    5.0f,                        // speed
+    2.0f,                        // lifetime (seconds)
+    glm::vec4(1.0f, 0.5f, 0.1f, 1.0f)  // colour (orange)
+);
+
+float accumulator = 0.0f;
+const float emitRate = 500.0f;  // particles per second
+
+while (running) &#123;
+    float dt = GetDeltaTime();
+
+    // Spawn new particles
+    accumulator += dt * emitRate;
+    int toSpawn = static_cast&lt;int&gt;(accumulator);
+    if (toSpawn &gt; 0) &#123;
+        emitter.Emit(pool, toSpawn);
+        accumulator -= toSpawn;
+    &#125;
+
+    // Simulate
+    pool.Update(dt);
+
+    // Render (submit live particle positions to GPU)
+    RenderParticles(pool.Positions(), pool.Colours(), pool.Alive(), pool.Capacity());
+&#125;</code></pre>
+
+<h2>Going Further</h2>
+
+<p>Some natural next steps if you want to extend this system:</p>
+
+<ul>
+  <li><strong>Forces:</strong> Add a gravity or wind vector to the update step.</li>
+  <li><strong>Colour gradients:</strong> Interpolate between two colours over the particle's lifetime instead of just fading alpha.</li>
+  <li><strong>Size over lifetime:</strong> Add a size channel and scale the billboard quad in your vertex shader.</li>
+  <li><strong>GPU particles:</strong> For 1M+ particles, move the simulation into a compute shader and keep everything on the GPU.</li>
+  <li><strong>Sub-emitters:</strong> Spawn a new burst of particles when a particle dies (e.g., an explosion spawning smoke trails).</li>
+</ul>
+
+<blockquote>
+  The key insight of data-oriented design isn't "use arrays instead of classes" — it's
+  "organise your data the way your algorithms want to access it." Start with the hot loop,
+  then design your layout around it.
+</blockquote>
+
+<p>
+  The full source for this tutorial is available on GitHub (link placeholder). If you have
+  questions or spot an error, feel free to <a href="/contact">get in touch</a>.
+</p>
+
+</ProseLayout>

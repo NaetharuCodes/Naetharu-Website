@@ -1,0 +1,210 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Personal website of Naetharu — developer, writer, tinkerer.' } = Astro.props;
+const siteTitle = 'Naetharu';
+const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <title>{fullTitle}</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container--wide header-inner">
+        <a href="/" class="site-logo">Naetharu</a>
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href="/" class="nav-link">Home</a>
+          <a href="/tutorials" class="nav-link">Tutorials</a>
+          <a href="/blog" class="nav-link">Blog</a>
+          <a href="/contact" class="nav-link">Contact</a>
+        </nav>
+        <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container--wide footer-inner">
+        <p class="footer-copy">&copy; {new Date().getFullYear()} Naetharu. All rights reserved.</p>
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <a href="/tutorials">Tutorials</a>
+          <a href="/blog">Blog</a>
+          <a href="/contact">Contact</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+      // Mobile nav toggle
+      const toggle = document.querySelector('.nav-toggle') as HTMLButtonElement;
+      const nav = document.querySelector('.site-nav') as HTMLElement;
+      toggle?.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', String(!expanded));
+        nav.classList.toggle('is-open');
+      });
+
+      // Highlight active nav link
+      const links = document.querySelectorAll<HTMLAnchorElement>('.nav-link');
+      links.forEach(link => {
+        if (link.href === window.location.href ||
+            (link.pathname !== '/' && window.location.pathname.startsWith(link.pathname))) {
+          link.classList.add('active');
+        }
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15, 15, 19, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    height: 64px;
+  }
+
+  .site-logo {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--color-text-heading);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+
+  .site-logo:hover { color: var(--color-accent); }
+
+  .site-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .nav-link {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.4em 0.75em;
+    border-radius: var(--radius-md);
+    transition: color 0.2s, background 0.2s;
+    text-decoration: none;
+  }
+
+  .nav-link:hover,
+  .nav-link.active {
+    color: var(--color-text-heading);
+    background: var(--color-surface);
+  }
+
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .nav-toggle span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--color-text);
+    border-radius: 2px;
+    transition: transform 0.2s;
+  }
+
+  @media (max-width: 600px) {
+    .nav-toggle { display: flex; }
+
+    .site-nav {
+      display: none;
+      position: absolute;
+      top: 64px;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0.75rem 1.5rem;
+      gap: 0;
+    }
+
+    .site-nav.is-open { display: flex; }
+
+    .nav-link {
+      padding: 0.75em 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .nav-link:last-child { border-bottom: none; }
+  }
+
+  /* Footer */
+  .site-footer {
+    border-top: 1px solid var(--color-border);
+    padding: 2rem 0;
+    margin-top: 5rem;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-copy {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+
+  .footer-nav {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .footer-nav a {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    text-decoration: none;
+  }
+
+  .footer-nav a:hover { color: var(--color-text); }
+</style>

@@ -1,0 +1,130 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = [
+  {
+    slug: 'why-i-love-cpp',
+    title: 'Why I Keep Coming Back to C++',
+    description: 'Despite its notorious reputation, C++ continues to be the language I reach for when things need to be fast and correct.',
+    date: new Date('2025-03-12'),
+    tags: ['Opinion', 'C++'],
+  },
+  {
+    slug: 'data-oriented-design',
+    title: 'Data-Oriented Design: A Practical Primer',
+    description: 'What it means to think in data rather than objects, and why your CPU will thank you for it.',
+    date: new Date('2025-02-28'),
+    tags: ['Design', 'C++', 'Performance'],
+  },
+];
+
+function formatDate(d: Date) {
+  return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+---
+
+<BaseLayout title="Blog" description="Thoughts on software, systems programming, and the craft of writing code.">
+  <div class="page">
+    <div class="container">
+      <header class="page-header">
+        <h1>Blog</h1>
+        <p>
+          Less structured than tutorials — this is where I think out loud about interesting
+          problems, share opinions, and write about whatever I'm currently obsessing over.
+        </p>
+      </header>
+
+      <div class="post-list">
+        {posts.map(post => (
+          <a href={`/blog/${post.slug}`} class="post-item">
+            <div class="post-left">
+              <time class="post-date">{formatDate(post.date)}</time>
+              <h2 class="post-title">{post.title}</h2>
+              <p class="post-desc">{post.description}</p>
+              <div class="post-tags">
+                {post.tags.map(tag => <span class="tag">{tag}</span>)}
+              </div>
+            </div>
+            <span class="post-arrow" aria-hidden="true">&rarr;</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page { padding: 3rem 0 5rem; }
+
+  .page-header {
+    max-width: 640px;
+    margin-bottom: 3rem;
+  }
+
+  .page-header h1 { margin-bottom: 0.75rem; }
+  .page-header p { color: var(--color-text-muted); font-size: 1.05rem; }
+
+  .post-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .post-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.75rem;
+    background: var(--color-surface);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s;
+  }
+
+  .post-item:not(:last-child) { border-bottom: 1px solid var(--color-border); }
+  .post-item:hover { background: var(--color-surface-raised); }
+
+  .post-left { flex: 1; }
+
+  .post-date {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .post-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+    color: var(--color-text-heading);
+  }
+
+  .post-desc {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .post-arrow {
+    flex-shrink: 0;
+    color: var(--color-accent);
+    font-size: 1.25rem;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .post-item:hover .post-arrow {
+    opacity: 1;
+    transform: translateX(4px);
+  }
+</style>
