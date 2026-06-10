@@ -1,10 +1,17 @@
 ---
-import { getCollection, render } from 'astro:content';
-import ProseLayout from '../../layouts/ProseLayout.astro';
+import { getCollection, render } from "astro:content";
+import ProseLayout from "../../layouts/ProseLayout.astro";
 
 export async function getStaticPaths() {
-  const collections = ['devops', 'microsoft-azure', 'scripts-and-automation', 'other'];
-  const entriesArrays = await Promise.all(collections.map((c) => getCollection(c, ({ data }) => !data.draft)));
+  const collections = [
+    "devops",
+    "microsoft-azure",
+    "scripts-and-automation",
+    "other",
+  ];
+  const entriesArrays = await Promise.all(
+    collections.map((c) => getCollection(c, ({ data }) => !data.draft)),
+  );
   const tutorials = entriesArrays.flat();
   return tutorials.map((tutorial) => ({
     params: { slug: tutorial.id },
