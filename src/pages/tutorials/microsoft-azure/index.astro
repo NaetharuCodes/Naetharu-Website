@@ -1,69 +1,183 @@
 ---
 import { getCollection, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { pathways } from '../../../data/pathways';
 
-const all = await getCollection('microsoft-azure', ({ data }: CollectionEntry) => !data.draft);
-const categoryName = 'Microsoft Azure';
-const items = all;
+const all = await getCollection('microsoft-azure', ({ data }: CollectionEntry<'microsoft-azure'>) => !data.draft);
+const items = all.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
-const tagMap = new Map();
-for (const t of items) {
-  for (const tag of t.data.tags || []) {
-    const key = tag;
-    if (!tagMap.has(key)) tagMap.set(key, []);
-    tagMap.get(key).push(t);
-  }
-}
-
-const untagged = items.filter((t) => !(t.data.tags || []).length);
+// Build pathway cards — count tutorials per pathway
+const pathwayCards = Object.entries(pathways).map(([slug, meta]) => ({
+  slug,
+  ...meta,
+  count: items.filter(t => t.data.pathway === slug).length,
+}));
 ---
 
-<BaseLayout title={`${categoryName} Tutorials`} description={`Tutorials in the ${categoryName} section`}>
+<BaseLayout title="Microsoft Azure Tutorials" description="Tutorials in the Microsoft Azure section">
   <div class="page">
     <div class="container">
       <header class="page-header">
-        <h1>{categoryName}</h1>
-        <p>Azure-focused tutorials, including certification topics like AZ-104.</p>
+        <h1>Microsoft Azure</h1>
+        <p>Azure-focused tutorials, including certification study guides for AZ-104 and AZ-305.</p>
       </header>
 
-      {items.length ? (
-        <div class="section-list">
-          {Array.from(tagMap.keys()).map((tag) => (
-            <div class="tag-group">
-              <h2 class="tag-title">{tag}</h2>
-              {tagMap.get(tag).map((t: CollectionEntry<'tutorials'>) => (
-                <article class="tutorial-card">
-                  <h3><a href={`/tutorials/${t.id}`}>{t.data.title}</a></h3>
-                  <p class="desc">{t.data.description}</p>
-                </article>
-              ))}
-            </div>
-          ))}
+      <div class="view-tabs" role="tablist">
+        <button class="tab-btn active" data-view="all" role="tab" aria-selected="true">All</button>
+        <button class="tab-btn" data-view="pathways" role="tab" aria-selected="false">Pathways</button>
+      </div>
 
-          {untagged.length ? (
-            <div class="tag-group">
-              <h2 class="tag-title">Untagged</h2>
-              {untagged.map((t: CollectionEntry<'tutorials'>) => (
-                <article class="tutorial-card">
-                  <h3><a href={`/tutorials/${t.id}`}>{t.data.title}</a></h3>
-                  <p class="desc">{t.data.description}</p>
-                </article>
-              ))}
-            </div>
-          ) : null}
+      <!-- All tutorials -->
+      <div id="view-all" class="view-section">
+        {items.length ? (
+          <div class="tutorial-list">
+            {items.map((t: CollectionEntry<'microsoft-azure'>) => (
+              <article class="tutorial-card">
+                <div class="card-tags">
+                  {(t.data.tags || []).map((tag: string) => (
+                    <span class="tag">{tag}</span>
+                  ))}
+                </div>
+                <h3><a href={`/tutorials/${t.id}`}>{t.data.title}</a></h3>
+                <p class="desc">{t.data.description}</p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p>No tutorials in this section yet.</p>
+        )}
+      </div>
+
+      <!-- Pathways view -->
+      <div id="view-pathways" class="view-section hidden">
+        <div class="pathway-grid">
+          {pathwayCards.map(p => (
+            <a href={`/tutorials/microsoft-azure/${p.slug}`} class="pathway-card">
+              <span class="pathway-level">{p.level}</span>
+              <h2 class="pathway-name">{p.name}</h2>
+              <p class="pathway-desc">{p.description}</p>
+              <span class="pathway-meta">{p.count} tutorials &rarr;</span>
+            </a>
+          ))}
         </div>
-      ) : (
-        <p>No tutorials in this section yet.</p>
-      )}
+      </div>
+
     </div>
   </div>
 </BaseLayout>
 
+<script>
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.tab-btn');
+  const views = document.querySelectorAll<HTMLElement>('.view-section');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.view;
+      tabs.forEach(t => {
+        t.classList.toggle('active', t === tab);
+        t.setAttribute('aria-selected', String(t === tab));
+      });
+      views.forEach(v => v.classList.toggle('hidden', v.id !== `view-${target}`));
+    });
+  });
+</script>
+
 <style>
   .page { padding: 2.5rem 0; }
-  .tag-group { margin-bottom: 1.5rem; }
-  .tag-title { margin: 0 0 0.5rem 0; font-size: 1rem; }
-  .tutorial-card { padding: 0.75rem 0; border-bottom: 1px dashed var(--color-border); }
-  .tutorial-card h3 { margin: 0 0 0.25rem 0; }
-  .desc { margin: 0; color: var(--color-text-muted); }
+  .page-header { margin-bottom: 2rem; }
+
+  /* Tabs */
+  .view-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .tab-btn:hover { color: var(--color-text); }
+
+  .tab-btn.active {
+    color: var(--color-text-heading);
+    border-bottom-color: var(--color-accent);
+  }
+
+  /* Show/hide */
+  .hidden { display: none; }
+
+  /* All view */
+  .tutorial-list { display: flex; flex-direction: column; }
+  .tutorial-card { padding: 1rem 0; border-bottom: 1px dashed var(--color-border); }
+  .tutorial-card h3 { margin: 0.25rem 0; }
+  .card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .desc { margin: 0; color: var(--color-text-muted); font-size: 0.9rem; }
+
+  /* Pathways view */
+  .pathway-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .pathway-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.5rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+
+  .pathway-card:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  .pathway-level {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .pathway-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  .pathway-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  .pathway-meta {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    margin-top: 0.5rem;
+  }
 </style>

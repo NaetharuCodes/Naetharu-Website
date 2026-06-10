@@ -7,6 +7,9 @@ const basePostSchema = z.object({
   pubDate:     z.coerce.date(),
   tags:        z.array(z.string()).default([]),
   draft:       z.boolean().default(false),
+  videoId:     z.string().optional(),
+  pathway:      z.string().optional(),
+  pathwayOrder: z.number().optional(),
 });
 
 const blog = defineCollection({

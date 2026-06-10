@@ -1,0 +1,150 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { pathways } from '../../../data/pathways';
+
+export async function getStaticPaths() {
+  const all = await getCollection('microsoft-azure', ({ data }) => !data.draft);
+
+  return Object.keys(pathways).map(slug => {
+    const tutorials = all
+      .filter(t => t.data.pathway === slug)
+      .sort((a, b) => (a.data.pathwayOrder ?? 99) - (b.data.pathwayOrder ?? 99));
+
+    return {
+      params: { pathway: slug },
+      props: { tutorials, meta: pathways[slug] },
+    };
+  });
+}
+
+const { pathway } = Astro.params;
+const { tutorials, meta } = Astro.props;
+---
+
+<BaseLayout title={meta.name} description={meta.description}>
+  <div class="page">
+    <div class="container">
+      <a href="/tutorials/microsoft-azure" class="back-link">&larr; Microsoft Azure</a>
+
+      <header class="pathway-header">
+        <span class="pathway-level">{meta.level}</span>
+        <h1>{meta.name}</h1>
+        <p class="pathway-desc">{meta.description}</p>
+      </header>
+
+      <ol class="tutorial-list">
+        {tutorials.map((t, i) => (
+          <li class="tutorial-item">
+            <span class="tutorial-num">{i + 1}</span>
+            <div class="tutorial-body">
+              <div class="card-tags">
+                {(t.data.tags || []).map((tag: string) => (
+                  <span class="tag">{tag}</span>
+                ))}
+              </div>
+              <h2><a href={`/tutorials/${t.id}`}>{t.data.title}</a></h2>
+              <p class="tutorial-desc">{t.data.description}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page { padding: 2.5rem 0 5rem; }
+
+  .back-link {
+    display: inline-block;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 2rem;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--color-accent); }
+
+  .pathway-header {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .pathway-level {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: 0.6rem;
+  }
+
+  .pathway-header h1 { margin-bottom: 0.75rem; }
+
+  .pathway-desc {
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    line-height: 1.7;
+    max-width: 640px;
+    margin: 0;
+  }
+
+  /* Tutorial list */
+  .tutorial-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .tutorial-item {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .tutorial-num {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    margin-top: 0.1rem;
+  }
+
+  .tutorial-body { flex: 1; min-width: 0; }
+
+  .card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+
+  .tutorial-body h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 0.35rem;
+  }
+
+  .tutorial-body h2 a {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .tutorial-body h2 a:hover { color: var(--color-accent); }
+
+  .tutorial-desc {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+  }
+</style>

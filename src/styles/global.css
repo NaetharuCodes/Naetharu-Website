@@ -14,7 +14,7 @@
   --color-accent-hover: #9b8df9;
   --color-text: #e2e2f0;
   --color-text-muted: #888899;
-  --color-text-heading: #f4f4ff;
+  --color-text-heading: #f5a623;
   --color-tag-bg: #1e1e2a;
   --color-tag-text: #9b8df9;
 
@@ -112,8 +112,8 @@ main {
 }
 
 /* ===== Prose (for blog/tutorials) ===== */
-.prose h2 { margin: 2.5rem 0 1rem; }
-.prose h3 { margin: 2rem 0 0.75rem; }
+.prose h2 { margin: 4rem 0 1rem; }
+.prose h3 { margin: 3rem 0 0.75rem; }
 .prose p { margin-bottom: 1.25rem; }
 .prose ul, .prose ol {
   padding-left: 1.5rem;
@@ -126,6 +126,45 @@ main {
   margin: 1.5rem 0;
   color: var(--color-text-muted);
   font-style: italic;
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.75rem 0;
+  font-size: 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.prose thead {
+  background: var(--color-surface-raised);
+}
+.prose thead th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-heading);
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+}
+.prose tbody tr {
+  border-bottom: 1px solid var(--color-border);
+  transition: background 0.15s;
+}
+.prose tbody tr:last-child {
+  border-bottom: none;
+}
+.prose tbody tr:hover {
+  background: var(--color-surface-raised);
+}
+.prose tbody td {
+  padding: 0.7rem 1rem;
+  color: var(--color-text-muted);
+  vertical-align: top;
+}
+.prose tbody td:first-child {
+  color: var(--color-text);
+  font-weight: 500;
 }
 
 /* ===== Tag pill ===== */

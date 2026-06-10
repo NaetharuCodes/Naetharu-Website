@@ -1,10 +1,27 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+const tutorialCollections = await Promise.all([
+  getCollection('microsoft-azure', ({ data }) => !data.draft),
+  getCollection('devops',          ({ data }) => !data.draft),
+  getCollection('scripts-and-automation', ({ data }) => !data.draft),
+  getCollection('other',           ({ data }) => !data.draft),
+]);
+
+const latestTutorials = tutorialCollections
+  .flat()
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const latestPosts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 2);
 ---
 
 <BaseLayout
   title="Naetharu"
-  description="Developer, writer, and tinkerer. Welcome to my corner of the internet."
+  description="Azure architect, cloud engineer, and DevOps practitioner. Tutorials, notes, and thoughts on building in the cloud."
 >
   <!-- Hero -->
   <section class="hero">
@@ -14,8 +31,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <p class="hero-greeting">Hey there, I'm</p>
           <h1 class="hero-name">James Bridge</h1>
           <p class="hero-tagline">
-            Azure Architect, Developer, Tinkerer. I love to understand and
-            explore technology.
+            Azure architect, cloud engineer, and DevOps practitioner. I design
+            infrastructure, automate the tedious parts, and write about what I
+            learn along the way.
           </p>
           <div class="hero-actions">
             <a href="/tutorials" class="btn">Browse Tutorials</a>
@@ -38,13 +56,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <div class="about-text">
           <h2>A bit about me</h2>
           <p>
-            I'm an Azure architect, cloud engineer, and general technology nerd.
-            I love to understand how things work.
+            I design and build Azure infrastructure for a living — cloud
+            architecture, DevOps pipelines, and the automation that ties it all
+            together.
           </p>
           <p>
-            I'm also keenly interested in the technical underpinnings of AI, and
-            have done a lot of work with locally hosted models, custom training,
-            and safety systems.
+            I'm also interested in the technical side of AI — I've done a fair
+            amount of work with locally hosted models, custom training, and
+            safety systems.
           </p>
           <p>
             This site is my home on the internet: a place to share what I'm
@@ -86,41 +105,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <p>Step-by-step guides on the topics I care about most.</p>
       </div>
       <div class="card-grid">
-        <a href="/tutorials/cpp-particle-systems" class="card card-link">
-          <div class="card-tags">
-            <span class="tag">C++</span>
-            <span class="tag">Graphics</span>
-          </div>
-          <h3>Particle Systems in C++</h3>
-          <p>
-            Build a data-oriented, cache-friendly particle system from scratch
-            using modern C++ techniques.
-          </p>
-          <span class="card-cta">Read tutorial &rarr;</span>
-        </a>
-        <div class="card card--coming-soon">
-          <div class="card-tags">
-            <span class="tag">C++</span>
-            <span class="tag">Rendering</span>
-          </div>
-          <h3>OpenGL Basics: Your First Triangle</h3>
-          <p>
-            Getting started with OpenGL — setting up a context, shaders, and
-            drawing your first geometry.
-          </p>
-          <span class="coming-soon-badge">Coming soon</span>
-        </div>
-        <div class="card card--coming-soon">
-          <div class="card-tags">
-            <span class="tag">Data Structures</span>
-          </div>
-          <h3>Writing a Lock-Free Queue</h3>
-          <p>
-            Explore atomic operations and memory ordering to build a
-            thread-safe, lock-free queue in C++.
-          </p>
-          <span class="coming-soon-badge">Coming soon</span>
-        </div>
+        {latestTutorials.map(t => (
+          <a href={`/tutorials/${t.id}`} class="card card-link">
+            <div class="card-tags">
+              {t.data.tags.map(tag => <span class="tag">{tag}</span>)}
+            </div>
+            <h3>{t.data.title}</h3>
+            <p>{t.data.description}</p>
+            <span class="card-cta">Read tutorial &rarr;</span>
+          </a>
+        ))}
       </div>
       <div class="section-footer">
         <a href="/tutorials" class="btn btn--outline">All tutorials &rarr;</a>
@@ -136,28 +130,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <p>Thoughts, notes, and the occasional rant.</p>
       </div>
       <div class="post-list">
-        <a href="/blog/why-i-love-cpp" class="post-item">
-          <div class="post-item-meta">
-            <time>12 March 2025</time>
-            <span class="tag">Opinion</span>
-          </div>
-          <h3>Why I Keep Coming Back to C++</h3>
-          <p>
-            Despite its notorious reputation, C++ continues to be the language I
-            reach for when things need to be fast and correct.
-          </p>
-        </a>
-        <a href="/blog/data-oriented-design" class="post-item">
-          <div class="post-item-meta">
-            <time>28 February 2025</time>
-            <span class="tag">Design</span>
-          </div>
-          <h3>Data-Oriented Design: A Practical Primer</h3>
-          <p>
-            What it means to think in data rather than objects, and why your CPU
-            will thank you for it.
-          </p>
-        </a>
+        {latestPosts.map(post => (
+          <a href={`/blog/${post.id}`} class="post-item">
+            <div class="post-item-meta">
+              <time>{post.data.pubDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</time>
+              {post.data.tags[0] && <span class="tag">{post.data.tags[0]}</span>}
+            </div>
+            <h3>{post.data.title}</h3>
+            <p>{post.data.description}</p>
+          </a>
+        ))}
       </div>
       <div class="section-footer">
         <a href="/blog" class="btn btn--outline">All posts &rarr;</a>
