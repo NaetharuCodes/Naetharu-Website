@@ -3,6 +3,7 @@ title: "Particle Systems in C++"
 description: "Build a data-oriented, cache-friendly particle system from scratch using modern C++ techniques."
 pubDate: 2025-03-10
 tags: ["C++", "Graphics", "Systems"]
+category: "Other"
 ---
 
 Particle systems are one of those topics that look deceptively simple from the outside —

@@ -2,10 +2,19 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-const published = await getCollection('tutorials', ({ data }: CollectionEntry<'tutorials'>) => !data.draft);
-published.sort((a: CollectionEntry<'tutorials'>, b: CollectionEntry<'tutorials'>) =>
-  b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
+const devops = await getCollection('devops', ({ data }: CollectionEntry) => !data.draft);
+const azure = await getCollection('microsoft-azure', ({ data }: CollectionEntry) => !data.draft);
+const scripts = await getCollection('scripts-and-automation', ({ data }: CollectionEntry) => !data.draft);
+const other = await getCollection('other', ({ data }: CollectionEntry) => !data.draft);
+
+const categories = ['DevOps', 'Microsoft Azure', 'Scripts and Automation', 'Other'];
+
+const grouped: Record<string, CollectionEntry[]> = {
+  'DevOps': devops,
+  'Microsoft Azure': azure,
+  'Scripts and Automation': scripts,
+  'Other': other,
+};
 
 // Upcoming tutorials not yet written — add new entries here as placeholders
 const upcoming: { title: string; description: string; tags: string[] }[] = [
@@ -22,47 +31,26 @@ const upcoming: { title: string; description: string; tags: string[] }[] = [
 ];
 ---
 
-<BaseLayout title="Tutorials" description="Step-by-step technical tutorials on C++, graphics programming, and systems topics.">
+<BaseLayout title="Tutorials" description="Step-by-step technical tutorials organized into topical sections.">
   <div class="page">
-    <div class="container">
+    <div class="container container--wide">
       <header class="page-header">
         <h1>Tutorials</h1>
         <p>
-          In-depth, step-by-step guides on the topics I find most interesting. Mostly C++,
-          systems programming, and graphics — written to be thorough rather than quick.
+          Tutorials grouped into focused sections. Click a card to view tutorials in that
+          section; within each section you can browse by tags.
         </p>
       </header>
 
-      <div class="tutorial-list">
-        {published.map((t: CollectionEntry<'tutorials'>) => (
-          <div class="tutorial-item">
-            <div class="tutorial-content">
-              <div class="tutorial-tags">
-                {t.data.tags.map((tag: string) => <span class="tag">{tag}</span>)}
-              </div>
-              <h2 class="tutorial-title">
-                <a href={`/tutorials/${t.id}`}>{t.data.title}</a>
-              </h2>
-              <p class="tutorial-desc">{t.data.description}</p>
+      <div class="cards">
+        {categories.map((cat: string) => (
+          <a class="card" href={`/tutorials/${cat.toLowerCase().replace(/ /g, '-')}/`}>
+            <div class="card-body">
+              <h2 class="card-title">{cat}</h2>
+              <p class="card-desc">{`Browse ${grouped[cat].length} tutorials in ${cat}.`}</p>
             </div>
-            <div class="tutorial-meta">
-              <a href={`/tutorials/${t.id}`} class="btn">Read tutorial &rarr;</a>
-            </div>
-          </div>
-        ))}
-        {upcoming.map((t: { title: string; description: string; tags: string[] }) => (
-          <div class="tutorial-item tutorial-item--upcoming">
-            <div class="tutorial-content">
-              <div class="tutorial-tags">
-                {t.tags.map((tag: string) => <span class="tag">{tag}</span>)}
-              </div>
-              <h2 class="tutorial-title">{t.title}</h2>
-              <p class="tutorial-desc">{t.description}</p>
-            </div>
-            <div class="tutorial-meta">
-              <span class="upcoming-label">Coming soon</span>
-            </div>
-          </div>
+            <div class="card-meta">View →</div>
+          </a>
         ))}
       </div>
     </div>
@@ -71,74 +59,32 @@ const upcoming: { title: string; description: string; tags: string[] }[] = [
 
 <style>
   .page { padding: 3rem 0 5rem; }
+  .page-header { max-width: 720px; margin-bottom: 2.25rem; }
 
-  .page-header {
-    max-width: 640px;
-    margin-bottom: 3rem;
-  }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
 
-  .page-header h1 { margin-bottom: 0.75rem; }
-  .page-header p { color: var(--color-text-muted); font-size: 1.05rem; }
-
-  .tutorial-list {
+  .card {
     display: flex;
-    flex-direction: column;
-    gap: 1px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-  }
-
-  .tutorial-item {
-    display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 2rem;
-    padding: 1.75rem;
+    padding: 1.25rem 1.5rem;
     background: var(--color-surface);
-    transition: background 0.2s;
-  }
-
-  .tutorial-item:not(:last-child) { border-bottom: 1px solid var(--color-border); }
-  .tutorial-item:hover { background: var(--color-surface-raised); }
-  .tutorial-item--upcoming { opacity: 0.55; }
-
-  .tutorial-content { flex: 1; }
-
-  .tutorial-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    margin-bottom: 0.6rem;
-  }
-
-  .tutorial-title {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .tutorial-title a {
-    color: var(--color-text-heading);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
     text-decoration: none;
+    color: inherit;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    width: 100%;
+    min-height: 84px;
   }
+  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
 
-  .tutorial-title a:hover { color: var(--color-accent); }
 
-  .tutorial-desc {
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-    margin: 0;
-  }
+  .card-body { flex: 1; min-width: 0; }
+  .card-title { margin: 0 0 0.25rem 0; font-size: 1.05rem; }
+  .card-desc { margin: 0; color: var(--color-text-muted); font-size: 0.95rem; }
 
-  .tutorial-meta { flex-shrink: 0; }
+  .card-meta { margin-left: 1rem; color: var(--color-accent); font-weight: 600; }
 
-  .upcoming-label {
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    font-style: italic;
-  }
-
-  @media (max-width: 600px) {
-    .tutorial-item { flex-direction: column; align-items: flex-start; }
-  }
+  @media (max-width: 800px) { .cards { grid-template-columns: 1fr; } }
 </style>

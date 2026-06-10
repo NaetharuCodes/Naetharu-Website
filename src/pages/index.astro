@@ -1,20 +1,21 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="Naetharu" description="Developer, writer, and tinkerer. Welcome to my corner of the internet.">
-
+<BaseLayout
+  title="Naetharu"
+  description="Developer, writer, and tinkerer. Welcome to my corner of the internet."
+>
   <!-- Hero -->
   <section class="hero">
     <div class="container">
       <div class="hero-inner">
         <div class="hero-text">
           <p class="hero-greeting">Hey there, I'm</p>
-          <h1 class="hero-name">Naetharu</h1>
+          <h1 class="hero-name">James Bridge</h1>
           <p class="hero-tagline">
-            Developer, writer, and tinkerer. I build things, break things, and write about both.
-            Particularly fond of low-level systems, graphics programming, and the occasional
-            deep dive into game engine internals.
+            Azure Architect, Developer, Tinkerer. I love to understand and
+            explore technology.
           </p>
           <div class="hero-actions">
             <a href="/tutorials" class="btn">Browse Tutorials</a>
@@ -37,24 +38,40 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <div class="about-text">
           <h2>A bit about me</h2>
           <p>
-            I've been writing code for over a decade, with a particular love for C++ and systems
-            programming. When I'm not writing software, I'm usually reading about it — or
-            writing tutorials to help others understand the things that took me a while to figure out.
+            I'm an Azure architect, cloud engineer, and general technology nerd.
+            I love to understand how things work.
           </p>
           <p>
-            This site is my home on the internet: a place to share what I'm learning, document
-            interesting problems I've solved, and occasionally muse about the state of the industry.
+            I'm also keenly interested in the technical underpinnings of AI, and
+            have done a lot of work with locally hosted models, custom training,
+            and safety systems.
           </p>
-          <a href="/contact" class="btn btn--outline" style="margin-top: 0.5rem;">Get in touch</a>
+          <p>
+            This site is my home on the internet: a place to share what I'm
+            learning, document interesting problems I've solved, and
+            occasionally muse about the state of the industry.
+          </p>
+          <a
+            href="/contact"
+            class="btn btn--outline"
+            style="margin-top: 0.5rem;">Get in touch</a
+          >
         </div>
         <div class="about-skills">
           <h3>What I work with</h3>
           <ul class="skill-list">
-            <li><span class="tag">C++</span> Systems &amp; graphics programming</li>
-            <li><span class="tag">TypeScript</span> Web frontends &amp; tooling</li>
-            <li><span class="tag">Rust</span> Performance-critical utilities</li>
-            <li><span class="tag">OpenGL / Vulkan</span> Rendering pipelines</li>
-            <li><span class="tag">Python</span> Scripting &amp; data wrangling</li>
+            <li>
+              <span class="tag">Azure</span> Cloud Engineering &amp; Architecture.
+            </li>
+            <li>
+              <span class="tag">CI/CD</span> DevOps pipelines &amp; automation
+            </li>
+            <li>
+              <span class="tag">PowerShell</span> Automation Scripting
+            </li>
+            <li>
+              <span class="tag">Python</span> Scripting &amp; data wrangling
+            </li>
           </ul>
         </div>
       </div>
@@ -75,7 +92,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <span class="tag">Graphics</span>
           </div>
           <h3>Particle Systems in C++</h3>
-          <p>Build a data-oriented, cache-friendly particle system from scratch using modern C++ techniques.</p>
+          <p>
+            Build a data-oriented, cache-friendly particle system from scratch
+            using modern C++ techniques.
+          </p>
           <span class="card-cta">Read tutorial &rarr;</span>
         </a>
         <div class="card card--coming-soon">
@@ -84,7 +104,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <span class="tag">Rendering</span>
           </div>
           <h3>OpenGL Basics: Your First Triangle</h3>
-          <p>Getting started with OpenGL — setting up a context, shaders, and drawing your first geometry.</p>
+          <p>
+            Getting started with OpenGL — setting up a context, shaders, and
+            drawing your first geometry.
+          </p>
           <span class="coming-soon-badge">Coming soon</span>
         </div>
         <div class="card card--coming-soon">
@@ -92,7 +115,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <span class="tag">Data Structures</span>
           </div>
           <h3>Writing a Lock-Free Queue</h3>
-          <p>Explore atomic operations and memory ordering to build a thread-safe, lock-free queue in C++.</p>
+          <p>
+            Explore atomic operations and memory ordering to build a
+            thread-safe, lock-free queue in C++.
+          </p>
           <span class="coming-soon-badge">Coming soon</span>
         </div>
       </div>
@@ -116,7 +142,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <span class="tag">Opinion</span>
           </div>
           <h3>Why I Keep Coming Back to C++</h3>
-          <p>Despite its notorious reputation, C++ continues to be the language I reach for when things need to be fast and correct.</p>
+          <p>
+            Despite its notorious reputation, C++ continues to be the language I
+            reach for when things need to be fast and correct.
+          </p>
         </a>
         <a href="/blog/data-oriented-design" class="post-item">
           <div class="post-item-meta">
@@ -124,7 +153,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <span class="tag">Design</span>
           </div>
           <h3>Data-Oriented Design: A Practical Primer</h3>
-          <p>What it means to think in data rather than objects, and why your CPU will thank you for it.</p>
+          <p>
+            What it means to think in data rather than objects, and why your CPU
+            will thank you for it.
+          </p>
         </a>
       </div>
       <div class="section-footer">
@@ -132,7 +164,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
     </div>
   </section>
-
 </BaseLayout>
 
 <style>
@@ -183,7 +214,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     gap: 0.75rem;
   }
 
-  .hero-avatar { flex-shrink: 0; }
+  .hero-avatar {
+    flex-shrink: 0;
+  }
 
   .avatar-placeholder {
     width: 180px;
@@ -195,19 +228,30 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     justify-content: center;
     font-size: 5rem;
     font-weight: 800;
-    color: rgba(255,255,255,0.9);
+    color: rgba(255, 255, 255, 0.9);
     border: 3px solid var(--color-border);
     user-select: none;
   }
 
   @media (max-width: 640px) {
-    .hero-inner { flex-direction: column-reverse; align-items: flex-start; }
-    .avatar-placeholder { width: 100px; height: 100px; font-size: 3rem; }
+    .hero-inner {
+      flex-direction: column-reverse;
+      align-items: flex-start;
+    }
+    .avatar-placeholder {
+      width: 100px;
+      height: 100px;
+      font-size: 3rem;
+    }
   }
 
   /* Sections */
-  .section { padding: 4rem 0; }
-  .section-footer { margin-top: 2.5rem; }
+  .section {
+    padding: 4rem 0;
+  }
+  .section-footer {
+    margin-top: 2.5rem;
+  }
 
   /* About */
   .about-grid {
@@ -217,8 +261,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     align-items: start;
   }
 
-  .about-text h2 { margin-bottom: 1rem; }
-  .about-text p { color: var(--color-text-muted); }
+  .about-text h2 {
+    margin-bottom: 1rem;
+  }
+  .about-text p {
+    color: var(--color-text-muted);
+  }
 
   .about-skills h3 {
     margin-bottom: 1rem;
@@ -244,7 +292,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
 
   @media (max-width: 640px) {
-    .about-grid { grid-template-columns: 1fr; }
+    .about-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   /* Card grid */
@@ -260,9 +310,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     color: inherit;
   }
 
-  .card-link h3, .card h3 { margin: 0.75rem 0 0.5rem; font-size: 1.05rem; }
-  .card-link p, .card p { font-size: 0.9rem; color: var(--color-text-muted); margin: 0; }
-  .card--coming-soon { opacity: 0.6; }
+  .card-link h3,
+  .card h3 {
+    margin: 0.75rem 0 0.5rem;
+    font-size: 1.05rem;
+  }
+  .card-link p,
+  .card p {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+  .card--coming-soon {
+    opacity: 0.6;
+  }
 
   .card-tags {
     display: flex;
@@ -305,8 +366,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     transition: background 0.2s;
   }
 
-  .post-item:not(:last-child) { border-bottom: 1px solid var(--color-border); }
-  .post-item:hover { background: var(--color-surface-raised); }
+  .post-item:not(:last-child) {
+    border-bottom: 1px solid var(--color-border);
+  }
+  .post-item:hover {
+    background: var(--color-surface-raised);
+  }
 
   .post-item-meta {
     display: flex;
@@ -315,7 +380,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     margin-bottom: 0.5rem;
   }
 
-  .post-item-meta time { color: var(--color-text-muted); font-size: 0.8rem; }
-  .post-item h3 { margin-bottom: 0.35rem; font-size: 1rem; }
-  .post-item p { font-size: 0.875rem; color: var(--color-text-muted); margin: 0; }
+  .post-item-meta time {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+  }
+  .post-item h3 {
+    margin-bottom: 0.35rem;
+    font-size: 1rem;
+  }
+  .post-item p {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin: 0;
+  }
 </style>

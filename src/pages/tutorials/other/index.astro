@@ -1,0 +1,69 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const all = await getCollection('other', ({ data }: CollectionEntry) => !data.draft);
+const categoryName = 'Other';
+const items = all;
+
+const tagMap = new Map();
+for (const t of items) {
+  for (const tag of t.data.tags || []) {
+    const key = tag;
+    if (!tagMap.has(key)) tagMap.set(key, []);
+    tagMap.get(key).push(t);
+  }
+}
+
+const untagged = items.filter((t) => !(t.data.tags || []).length);
+---
+
+<BaseLayout title={`${categoryName} Tutorials`} description={`Tutorials in the ${categoryName} section`}>
+  <div class="page">
+    <div class="container">
+      <header class="page-header">
+        <h1>{categoryName}</h1>
+        <p>Miscellaneous tutorials that don't fit the other categories.</p>
+      </header>
+
+      {items.length ? (
+        <div class="section-list">
+          {Array.from(tagMap.keys()).map((tag) => (
+            <div class="tag-group">
+              <h2 class="tag-title">{tag}</h2>
+              {tagMap.get(tag).map((t: CollectionEntry<'tutorials'>) => (
+                <article class="tutorial-card">
+                  <h3><a href={`/tutorials/${t.id}`}>{t.data.title}</a></h3>
+                  <p class="desc">{t.data.description}</p>
+                </article>
+              ))}
+            </div>
+          ))}
+
+          {untagged.length ? (
+            <div class="tag-group">
+              <h2 class="tag-title">Untagged</h2>
+              {untagged.map((t: CollectionEntry<'tutorials'>) => (
+                <article class="tutorial-card">
+                  <h3><a href={`/tutorials/${t.id}`}>{t.data.title}</a></h3>
+                  <p class="desc">{t.data.description}</p>
+                </article>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <p>No tutorials in this section yet.</p>
+      )}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page { padding: 2.5rem 0; }
+  .tag-group { margin-bottom: 1.5rem; }
+  .tag-title { margin: 0 0 0.5rem 0; font-size: 1rem; }
+  .tutorial-card { padding: 0.75rem 0; border-bottom: 1px dashed var(--color-border); }
+  .tutorial-card h3 { margin: 0 0 0.25rem 0; }
+  .desc { margin: 0; color: var(--color-text-muted); }
+</style>
